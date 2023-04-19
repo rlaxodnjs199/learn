@@ -66,6 +66,9 @@ const tourSchema = new mongoose.Schema(
 // virtual property is a property that will not be stored
 // in the database but will be calculated and returned once the
 // schema has been called.
+
+// virtual properties help moving code from controller to the model
+// by supporting business logic requirements
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
