@@ -1,8 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
 
+const AppError = require('./utils/appError');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const errorHandler = require('./controllers/errorController');
 
 const app = express();
 
@@ -29,5 +31,20 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+// API router works in sequencial order.
+// If the route has not been handled before, it will be fallen into
+// this default error route handler.
+app.all('*', (req, res, next) => {
+  // if next function receives an argument,
+  // express knows that it is an error,
+  // and skips all next middlewares other than error-handling middleware.
+  next(new AppError(`Cant't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Central Error handler middleware
+// By explicitly define a function with 4 arguments,
+// express knows that this is error-handling middleware.
+app.use(errorHandler);
 
 module.exports = app;
