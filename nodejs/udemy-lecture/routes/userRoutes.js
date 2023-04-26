@@ -1,8 +1,12 @@
 const express = require('express');
 
-const userController = require('./../controllers/userController');
+const userController = require('../controllers/userController');
+const authController = require('../controllers/authController');
 
 const router = express.Router();
+
+// not a REST format but makes sense.
+router.post('/signup', authController.signup);
 
 router
   .route('/')
