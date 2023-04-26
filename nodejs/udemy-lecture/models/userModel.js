@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 // Schema is a blueprint that defines the structure of a document
 const userSchema = new mongoose.Schema({
@@ -23,7 +24,29 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     required: [true, 'Please confirm your password'],
+    validate: {
+      // Custom validator only works on CREATE and SAVE
+      validator: function (el) {
+        return this.password === el;
+      },
+      message: 'Passwords are not the same',
+    },
   },
+});
+
+// pre middleware that acts between
+// receiving data and persist data on the database.
+userSchema.pre('save', async function (next) {
+  // this -> document object
+  // Only run this function when the password is modified
+  if (!this.isModified('password')) return next();
+
+  // bcrypt.hash(target, num_cpu_cores)
+  // higher num_cpu_cores produces more safe password
+  this.password = await bcrypt.hash(this.password, 12);
+  // sanitize passwordConfirm
+  this.passwordConfirm = undefined;
+  next();
 });
 
 // Model is a constructor function that provides an interface to
