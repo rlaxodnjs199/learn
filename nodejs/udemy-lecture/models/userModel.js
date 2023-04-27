@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: 8,
+    // hide this field from the response
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -48,6 +50,14 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+// Create an instance method that is available on the specific document.
+userSchema.methods.correctPassword = async function (
+  inputPassword,
+  userPassword
+) {
+  return await bcrypt.compare(inputPassword, userPassword);
+};
 
 // Model is a constructor function that provides an interface to
 // interact with MongoDB based on a schema.
