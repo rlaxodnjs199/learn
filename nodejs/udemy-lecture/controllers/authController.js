@@ -15,6 +15,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role,
   });
 
   const token = signToken(newUser._id);
@@ -87,3 +88,21 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+// How to pass argument to the middleware?
+// Write a wrapper function that takes arguments
+// and returns a middleware function.
+exports.restrictTo =
+  (...roles) =>
+  (req, res, next) => {
+    // since we store user object to req.user in previous middleware
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError(
+          'You do not have a permission to perform this action.',
+          403
+        )
+      );
+    }
+    next();
+  };
