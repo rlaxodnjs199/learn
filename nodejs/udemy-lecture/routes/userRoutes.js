@@ -8,6 +8,8 @@ const router = express.Router();
 // not a REST format but makes sense.
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.post('/forgotPassword', authController.forgotPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
 
 router
   .route('/')

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -40,6 +41,8 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 // pre middleware that acts between
@@ -54,6 +57,16 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   // sanitize passwordConfirm
   this.passwordConfirm = undefined;
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+  // sometimes this code finished before JWT actually created,
+  // which causes error in JWT validation logic.
+  // So we want to substract 2 seconds to make sure that
+  // passwordChangedAt is always before JWT timestamp.
+  this.passwordChangedAt = Date.now() - 2000;
   next();
 });
 
@@ -75,6 +88,20 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   }
   // password was never been changed.
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  // store encrypted token
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  // expire after 10min
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  // send unencrypted version to email and
+  // store encrypted version to DB to validate later
+  return resetToken;
 };
 
 // Model is a constructor function that provides an interface to
