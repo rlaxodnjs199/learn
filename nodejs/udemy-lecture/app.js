@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const AppError = require('./utils/appError');
 const tourRouter = require('./routes/tourRoutes');
@@ -43,6 +44,22 @@ app.use(mongoSanitize());
 // Prevent XSS attack
 // filter malicious HTML symbols
 app.use(xss());
+
+// Prevent parameter pollution
+// If not listed in whitelist, when there are duplicate parameters,
+// only the last one will be used.
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingQuantity',
+      'maxGroupSize',
+      'difficulty',
+      'ratingsAverage',
+      'price',
+    ],
+  })
+);
 
 // import static file folder
 app.use(express.static(`${__dirname}/public`));
