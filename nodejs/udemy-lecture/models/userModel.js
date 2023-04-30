@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    // hide implementation detail
+    select: false,
+  },
 });
 
 // pre middleware that acts between
@@ -67,6 +73,13 @@ userSchema.pre('save', function (next) {
   // So we want to substract 2 seconds to make sure that
   // passwordChangedAt is always before JWT timestamp.
   this.passwordChangedAt = Date.now() - 2000;
+  next();
+});
+
+// middleware is effective to every query starts with regex.
+// only pass documents where 'active is not false'.
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
   next();
 });
 
