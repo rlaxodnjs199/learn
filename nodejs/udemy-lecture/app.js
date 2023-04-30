@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const AppError = require('./utils/appError');
 const tourRouter = require('./routes/tourRoutes');
@@ -13,6 +14,15 @@ const app = express();
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+// Rate Limiter
+// Limit to 100 requests per hour from one IP
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Rate Limit exceeded',
+});
+app.use('/api', limiter);
 
 // middleware: function that can modify incoming request
 // express.json(): parse incoming requests with JSON payloads
