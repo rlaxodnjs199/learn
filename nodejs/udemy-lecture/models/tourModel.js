@@ -120,7 +120,8 @@ const tourSchema = new mongoose.Schema(
   },
   {
     // Each time when the data is outputed as JSON or an Object,
-    // includes virtuals
+    // includes virtual properties, which is computed properties
+    // that are not actually stored in DB.
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
