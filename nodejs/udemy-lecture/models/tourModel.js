@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const validator = require('validator');
+const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -82,6 +83,40 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // geo-spatial data
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    // embedded documents
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    // embeded documents
+    // guides: Array,
+    // referencing documents
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     // Each time when the data is outputed as JSON or an Object,
@@ -108,6 +143,13 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// Middleware to save referenced object(Users) in a document(Tour).
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 // tourSchema.pre('save', function (next) {
 //   console.log('Will save document...');
 //   next();
@@ -126,6 +168,16 @@ tourSchema.pre(/^find/, function (next) {
   // exclude documents with secretTour = true
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
+  next();
+});
+
+// Middleware to fill up 'guides' property,
+// which is a referenced document property.
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 

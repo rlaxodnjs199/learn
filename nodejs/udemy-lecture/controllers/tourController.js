@@ -30,7 +30,14 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 exports.getTour = catchAsync(async (req, res, next) => {
   // Since we set router to receive 'id' parameter...
+  // populate to fill up referenced document data
   const tour = await Tour.findById(req.params.id);
+  // .populate({
+  //   path: 'guides',
+  //   // select only interested properties.
+  //   // -{propName} to exclude props
+  //   select: '-__v -passwordChangedAt',
+  // });
 
   if (!tour) {
     // Important to 'return' next function, not just 'call' it
