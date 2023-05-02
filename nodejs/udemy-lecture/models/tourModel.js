@@ -137,6 +137,20 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate
+// Solve limitation of child referencing
+// Without storing all review IDs in tour document,
+// we can populate reviews from tour.
+
+// set virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  // tour ID field in foreign (Review) document
+  foreignField: 'tour',
+  // tour ID field in current (Tour) document
+  localField: '_id',
+});
+
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
 tourSchema.pre('save', function (next) {
   // this: document that will going to be saved

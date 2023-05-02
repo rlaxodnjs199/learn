@@ -39,10 +39,11 @@ const reviewSchema = new mongoose.Schema(
 
 // This will add more queries internally.
 reviewSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: 'tour',
-    select: 'name',
-  });
+  // If you don't need a chain of populate, then simply comment populate out.
+  // this.populate({
+  //   path: 'tour',
+  //   select: 'name',
+  // });
   this.populate({
     path: 'user',
     select: 'name photo',
