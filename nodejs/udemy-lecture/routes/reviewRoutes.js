@@ -2,7 +2,9 @@ const express = require('express');
 const reviewController = require('../controllers/reviewController');
 const authController = require('../controllers/authController');
 
-const router = express.Router();
+// We need to turn on a mergeParams option to
+// receive params defined in other routers.
+const router = express.Router({ mergeParams: true });
 
 router
   .route('/')
