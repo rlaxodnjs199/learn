@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const validator = require('validator');
-const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -126,6 +125,17 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+// Create single field index
+// '1': ascending order, '-1': descending order
+// tourSchema.index({ price: 1 });
+tourSchema.index({ slug: 1 });
+
+// Create compound field index
+// If you define a compound field index,
+// you don't need to additionally define sinlg field indexes included in it.
+// compound field index will work for included single field indexes too.
+tourSchema.index({ price: 1, ratingsAverage: -1 });
 
 // virtual property is a property that will not be stored
 // in the database but will be calculated and returned once the
