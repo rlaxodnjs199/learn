@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Tour = require('../models/tourModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -49,6 +50,50 @@ reviewSchema.pre(/^find/, function (next) {
     select: 'name photo',
   });
   next();
+});
+
+// static method to calculate statistics of tour that current review belongs to.
+reviewSchema.statics.calcAverageRatings = async function (tourId) {
+  // 'this' points to the model
+  const stats = await this.aggregate([
+    { $match: { tour: tourId } },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+  // if there is no review by deleting all, the stats will be just empty array.
+  if (stats.length > 0) {
+    // update ratingsQuantity and ratingsAverage in Tour document
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
+};
+
+// pre vs post
+// with pre, the document you are trying to save is not in DB yet.
+// with post, the document should already be in the DB.
+// post doesn't have access to 'next()'
+reviewSchema.post('save', function () {
+  // this.constructor -> Review Model
+  // this -> review document
+  this.constructor.calcAverageRatings(this.tour);
+});
+
+// post query middleware can take doc as an argument
+// and it has access to the updated document.
+reviewSchema.post(/^findOneAnd/, async (doc) => {
+  if (doc) await doc.constructor.calcAverageRatings(doc.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
