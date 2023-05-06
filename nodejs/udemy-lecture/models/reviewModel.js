@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Tour = require('../models/tourModel');
+const Tour = require('./tourModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -37,6 +37,10 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+// Set compound index and set the combination to be unique
+// so that a user can write only one review per tour.
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
 
 // This will add more queries internally.
 reviewSchema.pre(/^find/, function (next) {
