@@ -139,6 +139,10 @@ tourSchema.index({ slug: 1 });
 // compound field index will work for included single field indexes too.
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 
+// Need this for geospatial queries
+// '2dsphere' for real points on the Earth's surface.
+tourSchema.index({ startLocation: '2dsphere' });
+
 // virtual property is a property that will not be stored
 // in the database but will be calculated and returned once the
 // schema has been called.
@@ -216,12 +220,12 @@ tourSchema.post(/^find/, function (docs, next) {
 
 // AGGREGATION MIDDLEWARE
 // before and after aggregation happens
-tourSchema.pre('aggregate', function (next) {
-  // this: aggregation object
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // this: aggregation object
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 
