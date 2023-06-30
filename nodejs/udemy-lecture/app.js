@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -13,6 +14,13 @@ const reviewRouter = require('./routes/reviewRoutes');
 const errorHandler = require('./controllers/errorController');
 
 const app = express();
+
+// Setup 'pug' view engine
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// import static file folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -62,15 +70,16 @@ app.use(
   })
 );
 
-// import static file folder
-app.use(express.static(`${__dirname}/public`));
-
 // custom middleware function
 // all the middleware function receives req, res,next as parameters.
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   // need to call next() to go to the next step of request-response cycle.
   next();
+});
+
+app.get('/', (req, res) => {
+  res.status(200).render('base');
 });
 
 app.use('/api/v1/tours', tourRouter);
